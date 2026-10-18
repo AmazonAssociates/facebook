@@ -26,7 +26,7 @@ GENRES = {
 def load_history():
     if os.path.exists(HISTORY_FILE):
         try:
-            with open(HISTORY_FILE, "r") as f:
+            with open(HISTORY_FILE, "r":
                 return set(json.load(f))
         except:
             return set()
@@ -68,6 +68,25 @@ def post_to_buffer(movie):
     graphql_url = "https://api.buffer.com"
     
     for channel_id in BUFFER_CHANNEL_IDS:
+        # Check if it's the group channel or page channel based on ID or configure accordingly
+        # Group ID ends with e33e in your logs, Page ends with f99e
+        if channel_id == "6ad4574f778b240e2f44e33e":
+            # Facebook Group requirement: notification scheduling
+            input_data = {
+                "text": post_text,
+                "channelId": channel_id,
+                "schedulingType": "notification",
+                "mode": "addToQueue"
+            }
+        else:
+            # Facebook Page requirement: automatic scheduling with post type
+            input_data = {
+                "text": post_text,
+                "channelId": channel_id,
+                "schedulingType": "automatic",
+                "mode": "addToQueue"
+            }
+
         mutation = {
             "query": """
                 mutation CreatePost($input: CreatePostInput!) {
@@ -82,12 +101,7 @@ def post_to_buffer(movie):
                 }
             """,
             "variables": {
-                "input": {
-                    "text": post_text,
-                    "channelId": channel_id,
-                    "schedulingType": "automatic",
-                    "mode": "addToQueue"
-                }
+                "input": input_data
             }
         }
         
