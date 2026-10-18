@@ -1,6 +1,7 @@
 import os
 import json
 import requests
+from datetime import datetime, timedelta, timezone
 
 TMDB_API_KEY = os.getenv("TMDB_API_KEY")
 BUFFER_API_KEY = os.getenv("BUFFER_API_KEY")
@@ -9,7 +10,6 @@ BUFFER_CHANNEL_IDS = [cid.strip() for cid in os.getenv("BUFFER_CHANNEL_IDS", "")
 HISTORY_FILE = "posted_movies.json"
 APK_LINK = "https://drive.google.com/uc?export=download&id=19RPdMPaflAMCujyiroh95BxDWJRoff4X"
 
-# TMDB Category / Genre IDs
 GENRES = {
     "Action": 28,
     "Comedy": 35,
@@ -47,7 +47,7 @@ def fetch_category_movies(genre_name, genre_id, posted_ids):
                 return movie
     return None
 
-def post_to_buffer(movie):
+def post_to_buffer(movie, scheduled_time):
     title = movie.get("title")
     overview = movie.get("overview", "No description available.")
     category = movie.get("category", "Featured")
@@ -66,6 +66,8 @@ def post_to_buffer(movie):
     )
     
     graphql_url = "https://api.buffer.com"
+    # Format time for Buffer ISO string (e.g. 2026-10-18T10:00:00Z)
+    due_at_iso = scheduled_time.strftime("%Y-%m-%dT%H:%M:%SZ")
     
     for channel_id in BUFFER_CHANNEL_IDS:
         mutation = {
@@ -73,7 +75,7 @@ def post_to_buffer(movie):
                 mutation CreatePost($input: CreatePostInput!) {
                     createPost(input: $input) {
                         ... on PostActionSuccess {
-                            post { id text }
+                            post { id text dueAt }
                         }
                         ... on MutationError {
                             message
@@ -85,7 +87,8 @@ def post_to_buffer(movie):
                 "input": {
                     "text": post_text,
                     "channelId": channel_id,
-                    "mode": "addToQueue"
+                    "mode": "customScheduled",
+                    "dueAt": due_at_iso
                 }
             }
         }
@@ -96,7 +99,8 @@ def post_to_buffer(movie):
         }
         
         res = requests.post(graphql_url, json=mutation, headers=headers)
-        print(f"Queued '{title}' ({category}) to channel {channel_id}: {res.status_code}")
+        res_json = res.json()
+        print(f"Scheduled '{title}' ({category}) for {due_at_iso} on channel {channel_id}: {res_json}")
 
 if __name__ == "__main__":
     if not TMDB_API_KEY or not BUFFER_API_KEY or not BUFFER_CHANNEL_IDS:
@@ -106,7 +110,6 @@ if __name__ == "__main__":
     posted_ids = load_history()
     selected_movies = []
     
-    # Gather 1 movie from each category (Total 10 categories / 10 movies)
     for genre_name, genre_id in GENRES.items():
         movie = fetch_category_movies(genre_name, genre_id, posted_ids)
         if movie:
@@ -117,8 +120,12 @@ if __name__ == "__main__":
                 
     print(f"Selected {len(selected_movies)} new unique movies across categories.")
     
-    for movie in selected_movies:
-        post_to_buffer(movie)
+    # Calculate initial start time (1 hour from current execution time)
+    base_time = datetime.now(timezone.utc) + timedelta(hours=1)
+    
+    for idx, movie in enumerate(selected_movies):
+        # Add 1 hour incremental delay for each movie
+        post_time = base_time + timedelta(hours=idx)
+        post_to_buffer(movie, post_time)
         
-    # Save updated history so they are never posted again
     save_history(posted_ids)
