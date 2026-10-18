@@ -40,14 +40,16 @@ def save_history(posted_ids):
         json.dump(list(posted_ids), f)
 
 def fetch_category_movies(genre_name, genre_id, posted_ids):
-    url = f"https://api.themoviedb.org/3/discover/movie?api_key={TMDB_API_KEY}&with_genres={genre_id}&sort_by=popularity.desc&page=1"
-    response = requests.get(url)
-    if response.status_code == 200:
-        results = response.json().get("results", [])
-        for movie in results:
-            if movie["id"] not in posted_ids:
-                movie["category"] = genre_name
-                return movie
+    # Check multiple pages (1 to 5) to ensure we always find fresh unposted movies
+    for page in range(1, 6):
+        url = f"https://api.themoviedb.org/3/discover/movie?api_key={TMDB_API_KEY}&with_genres={genre_id}&sort_by=popularity.desc&page={page}"
+        response = requests.get(url)
+        if response.status_code == 200:
+            results = response.json().get("results", [])
+            for movie in results:
+                if movie["id"] not in posted_ids:
+                    movie["category"] = genre_name
+                    return movie
     return None
 
 def post_to_buffer(movie, scheduled_time):
@@ -69,7 +71,6 @@ def post_to_buffer(movie, scheduled_time):
     
     graphql_url = "https://api.buffer.com"
     
-    # Correct Buffer API combination: schedulingType='automatic', mode='customScheduled', with dueAt
     input_data = {
         "text": post_text,
         "channelId": PAGE_CHANNEL_ID,
