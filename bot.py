@@ -1,11 +1,12 @@
 import os
 import json
 import requests
+from datetime import datetime, timedelta, timezone
 
 TMDB_API_KEY = os.getenv("TMDB_API_KEY")
 BUFFER_API_KEY = os.getenv("BUFFER_API_KEY")
 
-# Updated Facebook Page Channel ID
+# Facebook Page Channel ID
 PAGE_CHANNEL_ID = os.getenv("BUFFER_CHANNEL_IDS", "6ad4ee63778b240e2f4a7dcc").split(",")[0].strip()
 
 HISTORY_FILE = "posted_movies.json"
@@ -49,13 +50,15 @@ def fetch_category_movies(genre_name, genre_id, posted_ids):
                 return movie
     return None
 
-def post_to_buffer(movie):
+def post_to_buffer(movie, scheduled_time):
     title = movie.get("title")
     overview = movie.get("overview", "No description available.")
     poster_path = movie.get("poster_path")
     poster_url = f"https://image.tmdb.org/t/p/w500{poster_path}" if poster_path else ""
     
-    # Clean, professional layout without category brackets in the title
+    # Format scheduled time into ISO format (YYYY-MM-DDTHH:MM:SSZ)
+    due_at_iso = scheduled_time.strftime("%Y-%m-%dT%H:%M:%SZ")
+    
     post_text = (
         f"🎬 {title}\n\n"
         f"{overview}\n\n"
@@ -66,11 +69,13 @@ def post_to_buffer(movie):
     
     graphql_url = "https://api.buffer.com"
     
+    # Using 'custom' schedulingType and 'customScheduled' mode forces exact timestamps
     input_data = {
         "text": post_text,
         "channelId": PAGE_CHANNEL_ID,
-        "schedulingType": "automatic",
-        "mode": "addToQueue",
+        "schedulingType": "custom",
+        "mode": "customScheduled",
+        "dueAt": due_at_iso,
         "metadata": {
             "facebook": {
                 "type": "post"
@@ -90,7 +95,7 @@ def post_to_buffer(movie):
             mutation CreatePost($input: CreatePostInput!) {
                 createPost(input: $input) {
                     ... on PostActionSuccess {
-                        post { id text }
+                        post { id text dueAt }
                     }
                     ... on MutationError {
                         message
@@ -110,7 +115,7 @@ def post_to_buffer(movie):
     
     res = requests.post(graphql_url, json=mutation, headers=headers)
     res_json = res.json()
-    print(f"Queued '{title}' to Facebook Page ({PAGE_CHANNEL_ID}): {res_json}")
+    print(f"Scheduled '{title}' for {due_at_iso} on Facebook Page: {res_json}")
 
 if __name__ == "__main__":
     if not TMDB_API_KEY or not BUFFER_API_KEY:
@@ -130,7 +135,12 @@ if __name__ == "__main__":
                 
     print(f"Selected {len(selected_movies)} new unique movies across categories.")
     
-    for movie in selected_movies:
-        post_to_buffer(movie)
+    # First post starts 10 minutes after script execution
+    start_time = datetime.now(timezone.utc) + timedelta(minutes=10)
+    
+    for idx, movie in enumerate(selected_movies):
+        # Space out each subsequent post by exactly 1 hour (+0h, +1h, +2h, ..., +9h)
+        post_time = start_time + timedelta(hours=idx)
+        post_to_buffer(movie, post_time)
         
     save_history(posted_ids)
