@@ -94,10 +94,12 @@ def post_to_buffer(movie):
                 }
             }
 
-        # Attach single poster image asset correctly using singular 'image'
+        # Format image as an ImageAssetInput object with 'url'
         if poster_url:
             input_data["assets"] = {
-                "image": poster_url
+                "image": {
+                    "url": poster_url
+                }
             }
 
         mutation = {
