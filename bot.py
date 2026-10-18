@@ -1,6 +1,7 @@
 import os
 import json
 import requests
+from datetime import datetime, timedelta, timezone
 
 TMDB_API_KEY = os.getenv("TMDB_API_KEY")
 BUFFER_API_KEY = os.getenv("BUFFER_API_KEY")
@@ -47,7 +48,7 @@ def fetch_category_movies(genre_name, genre_id, posted_ids):
                 return movie
     return None
 
-def post_to_buffer(movie):
+def post_to_buffer(movie, scheduled_time):
     title = movie.get("title")
     overview = movie.get("overview", "No description available.")
     category = movie.get("category", "Featured")
@@ -65,36 +66,22 @@ def post_to_buffer(movie):
     )
     
     graphql_url = "https://api.buffer.com"
+    due_at_iso = scheduled_time.strftime("%Y-%m-%dT%H:%M:%SZ")
     
     for channel_id in BUFFER_CHANNEL_IDS:
-        if channel_id == "6ad4574f778b240e2f44e33e":
-            # Facebook Group requirement: notification scheduling
-            input_data = {
-                "text": post_text,
-                "channelId": channel_id,
-                "schedulingType": "notification",
-                "mode": "addToQueue",
-                "metadata": {
-                    "facebook": {
-                        "type": "post"
-                    }
+        input_data = {
+            "text": post_text,
+            "channelId": channel_id,
+            "schedulingType": "custom",
+            "mode": "customScheduled",
+            "dueAt": due_at_iso,
+            "metadata": {
+                "facebook": {
+                    "type": "post"
                 }
             }
-        else:
-            # Facebook Page requirement: automatic scheduling
-            input_data = {
-                "text": post_text,
-                "channelId": channel_id,
-                "schedulingType": "automatic",
-                "mode": "addToQueue",
-                "metadata": {
-                    "facebook": {
-                        "type": "post"
-                    }
-                }
-            }
+        }
 
-        # Format image as an ImageAssetInput object with 'url'
         if poster_url:
             input_data["assets"] = {
                 "image": {
@@ -107,7 +94,7 @@ def post_to_buffer(movie):
                 mutation CreatePost($input: CreatePostInput!) {
                     createPost(input: $input) {
                         ... on PostActionSuccess {
-                            post { id text }
+                            post { id text dueAt }
                         }
                         ... on MutationError {
                             message
@@ -127,7 +114,7 @@ def post_to_buffer(movie):
         
         res = requests.post(graphql_url, json=mutation, headers=headers)
         res_json = res.json()
-        print(f"Queued '{title}' ({category}) to channel {channel_id}: {res_json}")
+        print(f"Scheduled '{title}' ({category}) for {due_at_iso} on channel {channel_id}: {res_json}")
 
 if __name__ == "__main__":
     if not TMDB_API_KEY or not BUFFER_API_KEY or not BUFFER_CHANNEL_IDS:
@@ -147,7 +134,12 @@ if __name__ == "__main__":
                 
     print(f"Selected {len(selected_movies)} new unique movies across categories.")
     
-    for movie in selected_movies:
-        post_to_buffer(movie)
+    # Calculate initial start time (10 minutes from script execution time)
+    base_time = datetime.now(timezone.utc) + timedelta(minutes=10)
+    
+    for idx, movie in enumerate(selected_movies):
+        # Space each movie exactly 1 hour apart (e.g., +0h, +1h, +2h, +3h...)
+        post_time = base_time + timedelta(hours=idx)
+        post_to_buffer(movie, post_time)
         
     save_history(posted_ids)
