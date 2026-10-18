@@ -67,23 +67,37 @@ def post_to_buffer(movie):
     graphql_url = "https://api.buffer.com"
     
     for channel_id in BUFFER_CHANNEL_IDS:
-        # Construct input with mandatory facebook metadata type
-        input_data = {
-            "text": post_text,
-            "channelId": channel_id,
-            "schedulingType": "automatic",
-            "mode": "addToQueue",
-            "metadata": {
-                "facebook": {
-                    "type": "post"
+        if channel_id == "6ad4574f778b240e2f44e33e":
+            # Facebook Group requirement: notification scheduling
+            input_data = {
+                "text": post_text,
+                "channelId": channel_id,
+                "schedulingType": "notification",
+                "mode": "addToQueue",
+                "metadata": {
+                    "facebook": {
+                        "type": "post"
+                    }
                 }
             }
-        }
-        
-        # Attach poster image asset if available
+        else:
+            # Facebook Page requirement: automatic scheduling
+            input_data = {
+                "text": post_text,
+                "channelId": channel_id,
+                "schedulingType": "automatic",
+                "mode": "addToQueue",
+                "metadata": {
+                    "facebook": {
+                        "type": "post"
+                    }
+                }
+            }
+
+        # Attach single poster image asset correctly using singular 'image'
         if poster_url:
             input_data["assets"] = {
-                "images": [poster_url]
+                "image": poster_url
             }
 
         mutation = {
