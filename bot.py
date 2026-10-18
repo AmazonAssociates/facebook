@@ -69,11 +69,12 @@ def post_to_buffer(movie, scheduled_time):
     
     graphql_url = "https://api.buffer.com"
     
-    # Using 'customScheduled' as schedulingType along with dueAt
+    # Correct Buffer API combination: schedulingType='automatic', mode='customScheduled', with dueAt
     input_data = {
         "text": post_text,
         "channelId": PAGE_CHANNEL_ID,
-        "schedulingType": "customScheduled",
+        "schedulingType": "automatic",
+        "mode": "customScheduled",
         "dueAt": due_at_iso,
         "metadata": {
             "facebook": {
