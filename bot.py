@@ -1,11 +1,10 @@
 import os
 import json
 import requests
-from datetime import datetime, timedelta, timezone
 
 TMDB_API_KEY = os.getenv("TMDB_API_KEY")
 BUFFER_API_KEY = os.getenv("BUFFER_API_KEY")
-BUFFER_CHANNEL_IDS = [cid.strip() for cid in os.getenv("BUFFER_CHANNEL_IDS", "").split(",") if cid.strip()]
+PAGE_CHANNEL_ID = "6ad45b3b778b240e2f44f99e"
 
 HISTORY_FILE = "posted_movies.json"
 APK_LINK = "https://drive.google.com/uc?export=download&id=19RPdMPaflAMCujyiroh95BxDWJRoff4X"
@@ -48,76 +47,71 @@ def fetch_category_movies(genre_name, genre_id, posted_ids):
                 return movie
     return None
 
-def post_to_buffer(movie, scheduled_time):
+def post_to_buffer(movie):
     title = movie.get("title")
     overview = movie.get("overview", "No description available.")
-    category = movie.get("category", "Featured")
     poster_path = movie.get("poster_path")
     poster_url = f"https://image.tmdb.org/t/p/w500{poster_path}" if poster_path else ""
     
+    # Clean, professional layout without category brackets
     post_text = (
-        f"🎬 [{category.upper()}] {title}\n\n"
+        f"🎬 {title}\n\n"
         f"{overview}\n\n"
-        f"🍿 Watch this and thousands of other movies on FILM BOX!\n\n"
-        f"📥 ┌────────────────────────┐\n"
-        f"     INSTALL FILM BOX APP\n"
-        f"  └────────────────────────┘\n"
-        f"👉 Download APK: {APK_LINK}"
+        f"🍿 Watch thousands of movies HD on FILM BOX!\n\n"
+        f"📲 INSTALL FILM BOX APP 👇\n"
+        f"📥 Download APK: {APK_LINK}"
     )
     
     graphql_url = "https://api.buffer.com"
-    due_at_iso = scheduled_time.strftime("%Y-%m-%dT%H:%M:%SZ")
     
-    for channel_id in BUFFER_CHANNEL_IDS:
-        input_data = {
-            "text": post_text,
-            "channelId": channel_id,
-            "schedulingType": "custom",
-            "mode": "customScheduled",
-            "dueAt": due_at_iso,
-            "metadata": {
-                "facebook": {
-                    "type": "post"
-                }
+    input_data = {
+        "text": post_text,
+        "channelId": PAGE_CHANNEL_ID,
+        "schedulingType": "automatic",
+        "mode": "addToQueue",
+        "metadata": {
+            "facebook": {
+                "type": "post"
+            }
+        }
+    }
+
+    if poster_url:
+        input_data["assets"] = {
+            "image": {
+                "url": poster_url
             }
         }
 
-        if poster_url:
-            input_data["assets"] = {
-                "image": {
-                    "url": poster_url
-                }
-            }
-
-        mutation = {
-            "query": """
-                mutation CreatePost($input: CreatePostInput!) {
-                    createPost(input: $input) {
-                        ... on PostActionSuccess {
-                            post { id text dueAt }
-                        }
-                        ... on MutationError {
-                            message
-                        }
+    mutation = {
+        "query": """
+            mutation CreatePost($input: CreatePostInput!) {
+                createPost(input: $input) {
+                    ... on PostActionSuccess {
+                        post { id text }
+                    }
+                    ... on MutationError {
+                        message
                     }
                 }
-            """,
-            "variables": {
-                "input": input_data
             }
+        """,
+        "variables": {
+            "input": input_data
         }
-        
-        headers = {
-            "Authorization": f"Bearer {BUFFER_API_KEY}",
-            "Content-Type": "application/json"
-        }
-        
-        res = requests.post(graphql_url, json=mutation, headers=headers)
-        res_json = res.json()
-        print(f"Scheduled '{title}' ({category}) for {due_at_iso} on channel {channel_id}: {res_json}")
+    }
+    
+    headers = {
+        "Authorization": f"Bearer {BUFFER_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    
+    res = requests.post(graphql_url, json=mutation, headers=headers)
+    res_json = res.json()
+    print(f"Queued '{title}' to Facebook Page: {res_json}")
 
 if __name__ == "__main__":
-    if not TMDB_API_KEY or not BUFFER_API_KEY or not BUFFER_CHANNEL_IDS:
+    if not TMDB_API_KEY or not BUFFER_API_KEY:
         print("Missing required environment variables!")
         exit(1)
         
@@ -134,12 +128,7 @@ if __name__ == "__main__":
                 
     print(f"Selected {len(selected_movies)} new unique movies across categories.")
     
-    # Calculate initial start time (10 minutes from script execution time)
-    base_time = datetime.now(timezone.utc) + timedelta(minutes=10)
-    
-    for idx, movie in enumerate(selected_movies):
-        # Space each movie exactly 1 hour apart (e.g., +0h, +1h, +2h, +3h...)
-        post_time = base_time + timedelta(hours=idx)
-        post_to_buffer(movie, post_time)
+    for movie in selected_movies:
+        post_to_buffer(movie)
         
     save_history(posted_ids)
