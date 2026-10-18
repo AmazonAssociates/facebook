@@ -69,12 +69,11 @@ def post_to_buffer(movie, scheduled_time):
     
     graphql_url = "https://api.buffer.com"
     
-    # Using 'custom' schedulingType and 'customScheduled' mode forces exact timestamps
+    # Using 'customScheduled' as schedulingType along with dueAt
     input_data = {
         "text": post_text,
         "channelId": PAGE_CHANNEL_ID,
-        "schedulingType": "custom",
-        "mode": "customScheduled",
+        "schedulingType": "customScheduled",
         "dueAt": due_at_iso,
         "metadata": {
             "facebook": {
@@ -135,11 +134,11 @@ if __name__ == "__main__":
                 
     print(f"Selected {len(selected_movies)} new unique movies across categories.")
     
-    # First post starts 10 minutes after script execution
+    # First post starts 10 minutes from now
     start_time = datetime.now(timezone.utc) + timedelta(minutes=10)
     
     for idx, movie in enumerate(selected_movies):
-        # Space out each subsequent post by exactly 1 hour (+0h, +1h, +2h, ..., +9h)
+        # Space out each post by exactly 1 hour (+0h, +1h, +2h...)
         post_time = start_time + timedelta(hours=idx)
         post_to_buffer(movie, post_time)
         
