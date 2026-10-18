@@ -4,7 +4,9 @@ import requests
 
 TMDB_API_KEY = os.getenv("TMDB_API_KEY")
 BUFFER_API_KEY = os.getenv("BUFFER_API_KEY")
-PAGE_CHANNEL_ID = "6ad45b3b778b240e2f44f99e"
+
+# Updated Facebook Page Channel ID
+PAGE_CHANNEL_ID = os.getenv("BUFFER_CHANNEL_IDS", "6ad4ee63778b240e2f4a7dcc").split(",")[0].strip()
 
 HISTORY_FILE = "posted_movies.json"
 APK_LINK = "https://drive.google.com/uc?export=download&id=19RPdMPaflAMCujyiroh95BxDWJRoff4X"
@@ -53,7 +55,7 @@ def post_to_buffer(movie):
     poster_path = movie.get("poster_path")
     poster_url = f"https://image.tmdb.org/t/p/w500{poster_path}" if poster_path else ""
     
-    # Clean, professional layout without category brackets
+    # Clean, professional layout without category brackets in the title
     post_text = (
         f"🎬 {title}\n\n"
         f"{overview}\n\n"
@@ -108,7 +110,7 @@ def post_to_buffer(movie):
     
     res = requests.post(graphql_url, json=mutation, headers=headers)
     res_json = res.json()
-    print(f"Queued '{title}' to Facebook Page: {res_json}")
+    print(f"Queued '{title}' to Facebook Page ({PAGE_CHANNEL_ID}): {res_json}")
 
 if __name__ == "__main__":
     if not TMDB_API_KEY or not BUFFER_API_KEY:
