@@ -7,7 +7,7 @@ TMDB_API_KEY = os.getenv("TMDB_API_KEY")
 BUFFER_API_KEY = os.getenv("BUFFER_API_KEY")
 
 # Facebook Page Channel ID
-PAGE_CHANNEL_ID = os.getenv("BUFFER_CHANNEL_IDS", "6ad4ee63778b240e2f4a7dcc").split(",")[0].strip()
+PAGE_CHANNEL_ID = os.getenv("BUFFER_CHANNEL_IDS", "6ad5be32778b240e2f550167").split(",")[0].strip()
 
 HISTORY_FILE = "posted_movies.json"
 APK_LINK = "https://drive.google.com/uc?export=download&id=19RPdMPaflAMCujyiroh95BxDWJRoff4X"
