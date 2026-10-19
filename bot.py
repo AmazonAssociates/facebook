@@ -7,10 +7,11 @@ TMDB_API_KEY = os.getenv("TMDB_API_KEY")
 BUFFER_API_KEY = os.getenv("BUFFER_API_KEY")
 
 # Facebook Page Channel ID
-PAGE_CHANNEL_ID = os.getenv("BUFFER_CHANNEL_IDS", "6ad5be32778b240e2f550167").split(",")[0].strip()
+PAGE_CHANNEL_ID = os.getenv("BUFFER_CHANNEL_IDS", "6ad4ee63778b240e2f4a7dcc").split(",")[0].strip()
 
 HISTORY_FILE = "posted_movies.json"
 APK_LINK = "https://drive.google.com/uc?export=download&id=19RPdMPaflAMCujyiroh95BxDWJRoff4X"
+WHATSAPP_LINK = "https://chat.whatsapp.com/L02vNHjowvW83MLbJVqIwC?s=cl&p=a&mlu=4&ilr=4"
 
 # TMDB Category / Genre IDs
 GENRES = {
@@ -40,7 +41,7 @@ def save_history(posted_ids):
         json.dump(list(posted_ids), f)
 
 def fetch_category_movies(genre_name, genre_id, posted_ids):
-    # Check multiple pages (1 to 5) to ensure we always find fresh unposted movies
+    # Check pages 1 through 5 to ensure fresh unposted movies
     for page in range(1, 6):
         url = f"https://api.themoviedb.org/3/discover/movie?api_key={TMDB_API_KEY}&with_genres={genre_id}&sort_by=popularity.desc&page={page}"
         response = requests.get(url)
@@ -65,6 +66,8 @@ def post_to_buffer(movie, scheduled_time):
         f"🎬 {title}\n\n"
         f"{overview}\n\n"
         f"🍿 Watch thousands of movies HD on FILM BOX!\n\n"
+        f"💬 JOIN OUR WHATSAPP GROUP 👇\n"
+        f"🔗 {WHATSAPP_LINK}\n\n"
         f"📲 INSTALL FILM BOX APP 👇\n"
         f"📥 Download APK: {APK_LINK}"
     )
