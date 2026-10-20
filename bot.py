@@ -10,8 +10,12 @@ BUFFER_API_KEY = os.getenv("BUFFER_API_KEY")
 PAGE_CHANNEL_ID = os.getenv("BUFFER_CHANNEL_IDS", "6ad4ee63778b240e2f4a7dcc").split(",")[0].strip()
 
 HISTORY_FILE = "posted_movies.json"
-APK_LINK = "https://drive.google.com/uc?export=download&id=19RPdMPaflAMCujyiroh95BxDWJRoff4X"
+APK_LINK = "https://drive.google.com/uc?export=download&id=1-MzbkxuEXllxTWdPv0zVXRmXtmBlfA9N"
 WHATSAPP_LINK = "https://chat.whatsapp.com/L02vNHjowvW83MLbJVqIwC?s=cl&p=a&mlu=4&ilr=4"
+FB_PAGE_LINK = "https://www.facebook.com/profile.php?id=61595278122419"
+FB_GROUP_LINK = "https://www.facebook.com/share/g/19zsQAbGu7/"
+BLOGGER_LINK = "https://filmboxproductions.blogspot.com"
+PAYPAL_LINK = "https://www.paypal.com/donate?business=lomalianorman@gmail.com&currency_code=USD"
 
 # TMDB Category / Genre IDs
 GENRES = {
@@ -66,8 +70,11 @@ def post_to_buffer(movie, scheduled_time):
         f"🎬 {title}\n\n"
         f"{overview}\n\n"
         f"🍿 Watch thousands of movies HD on FILM BOX!\n\n"
-        f"💬 JOIN OUR WHATSAPP GROUP 👇\n"
-        f"🔗 {WHATSAPP_LINK}\n\n"
+        f"🌐 Visit our Blog:\n🔗 {BLOGGER_LINK}\n\n"
+        f"👍 Follow our Facebook Page:\n🔗 {FB_PAGE_LINK}\n\n"
+        f"👥 Join our Facebook Group:\n🔗 {FB_GROUP_LINK}\n\n"
+        f"💬 Join our WhatsApp Group:\n🔗 {WHATSAPP_LINK}\n\n"
+        f"☕ Support Project via PayPal:\n🔗 {PAYPAL_LINK}\n\n"
         f"📲 INSTALL FILM BOX APP 👇\n"
         f"📥 Download APK: {APK_LINK}"
     )
