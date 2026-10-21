@@ -14,6 +14,7 @@ APK_LINK = "https://drive.google.com/uc?export=download&id=1-MzbkxuEXllxTWdPv0zV
 WHATSAPP_LINK = "https://chat.whatsapp.com/L02vNHjowvW83MLbJVqIwC?s=cl&p=a&mlu=4&ilr=4"
 FB_PAGE_LINK = "https://www.facebook.com/profile.php?id=61595278122419"
 FB_GROUP_LINK = "https://www.facebook.com/share/g/19zsQAbGu7/"
+INSTAGRAM_LINK = "https://www.instagram.com/filmboxseries?exln=cTF0dnRlZXV0MXhm"
 BLOGGER_LINK = "https://filmboxproductions.blogspot.com"
 PAYPAL_LINK = "https://www.paypal.com/donate?business=lomalianorman@gmail.com&currency_code=USD"
 
@@ -74,6 +75,7 @@ def post_to_buffer(movie, scheduled_time):
         f"👍 Follow our Facebook Page:\n🔗 {FB_PAGE_LINK}\n\n"
         f"👥 Join our Facebook Group:\n🔗 {FB_GROUP_LINK}\n\n"
         f"💬 Join our WhatsApp Group:\n🔗 {WHATSAPP_LINK}\n\n"
+        f"📸 Follow our Instagram (@FILMBOXSERIES):\n🔗 {INSTAGRAM_LINK}\n\n"
         f"☕ Support Project via PayPal:\n🔗 {PAYPAL_LINK}\n\n"
         f"📲 INSTALL FILM BOX APP 👇\n"
         f"📥 Download APK: {APK_LINK}"
