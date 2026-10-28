@@ -47,6 +47,16 @@ def save_history(posted_ids):
     with open(HISTORY_FILE, "w") as f:
         json.dump(list(posted_ids), f)
 
+def fetch_movie_details(movie_id):
+    url = f"https://api.themoviedb.org/3/movie/{movie_id}?api_key={TMDB_API_KEY}"
+    try:
+        response = requests.get(url, timeout=30)
+        if response.status_code == 200:
+            return response.json()
+    except Exception as e:
+        print(f"Error fetching details for movie ID {movie_id}: {e}")
+    return {}
+
 def fetch_category_movies(genre_name, genre_id, posted_ids):
     for page in range(1, 6):
         url = f"https://api.themoviedb.org/3/discover/movie?api_key={TMDB_API_KEY}&with_genres={genre_id}&sort_by=popularity.desc&page={page}"
@@ -54,24 +64,64 @@ def fetch_category_movies(genre_name, genre_id, posted_ids):
         if response.status_code == 200:
             results = response.json().get("results", [])
             for movie in results:
-                if movie["id"] not in posted_ids:
-                    movie["category"] = genre_name
-                    return movie
+                movie_id = movie.get("id")
+                if movie_id and movie_id not in posted_ids:
+                    # Fetch rich detailed metadata to ensure thorough description
+                    details = fetch_movie_details(movie_id)
+                    
+                    title = movie.get("title") or details.get("title", "Unknown Title")
+                    overview = details.get("overview") or movie.get("overview", "No description available for this cinematic release.")
+                    release_date = details.get("release_date") or movie.get("release_date", "Coming Soon")
+                    vote_average = details.get("vote_average", movie.get("vote_average", 0))
+                    vote_count = details.get("vote_count", 0)
+                    tagline = details.get("tagline", "")
+                    runtime = details.get("runtime", 0)
+                    
+                    genres_list = details.get("genres", [])
+                    genres_str = ", ".join([g.get("name", "") for g in genres_list]) if genres_list else genre_name
+
+                    poster_path = details.get("poster_path") or movie.get("poster_path")
+                    poster_url = f"https://image.tmdb.org/t/p/w500{poster_path}" if poster_path else ""
+
+                    return {
+                        "id": movie_id,
+                        "title": title,
+                        "overview": overview,
+                        "release_date": release_date,
+                        "vote_average": vote_average,
+                        "vote_count": vote_count,
+                        "tagline": tagline,
+                        "runtime": runtime,
+                        "genres": genres_str,
+                        "category": genre_name,
+                        "poster_url": poster_url
+                    }
     return None
 
 def post_to_buffer(movie, scheduled_time):
     title = movie.get("title")
     overview = movie.get("overview", "No description available.")
-    poster_path = movie.get("poster_path")
-    poster_url = f"https://image.tmdb.org/t/p/w500{poster_path}" if poster_path else ""
+    tagline = movie.get("tagline", "")
+    release_date = movie.get("release_date", "N/A")
+    vote_average = movie.get("vote_average", 0)
+    vote_count = movie.get("vote_count", 0)
+    runtime = movie.get("runtime", 0)
+    genres = movie.get("genres", "")
+    poster_url = movie.get("poster_url", "")
     
     due_at_iso = scheduled_time.strftime("%Y-%m-%dT%H:%M:%SZ")
     
-    # Styled Text Layout with Brand Icons
+    runtime_str = f"{runtime} mins" if runtime else "Feature Film"
+    tagline_str = f"\"{tagline}\"\n\n" if tagline else ""
+    
+    # Detailed Styled Post Text Layout
     post_text = (
-        f"🎬 {title}\n\n"
-        f"📖 {overview}\n\n"
-        f"🍿 Stream thousands of movies HD on FILM BOX!\n\n"
+        f"🎬 {title}\n"
+        f"{tagline_str}"
+        f"📅 Release: {release_date} | ⭐ Rating: {vote_average}/10 ({vote_count} votes)\n"
+        f"⏱️ Runtime: {runtime_str} | 🎭 Genres: {genres}\n\n"
+        f"📖 𝗦𝗧𝗢𝗥𝗬 𝗢𝗩𝗘𝗥𝗩𝗜𝗘𝗪:\n{overview}\n\n"
+        f"🍿 Stream thousands of movies in full HD on FILM BOX!\n\n"
         f"🌐 𝗕𝗟𝗢𝗚𝗚𝗘𝗥 𝗪𝗘𝗕𝗦𝗜𝗧𝗘:\n"
         f"🔗 {BLOGGER_LINK}\n\n"
         f"📘 𝗙𝗔𝗖𝗘𝗕𝗢𝗢𝗞 𝗣𝗔𝗚𝗘:\n"
