@@ -12,7 +12,7 @@ PAGE_CHANNEL_ID = os.getenv("BUFFER_CHANNEL_IDS", "6ad4ee63778b240e2f4a7dcc").sp
 HISTORY_FILE = "posted_movies.json"
 
 # All Official Links & Platforms (Updated APK Link)
-APK_LINK = "https://drive.google.com/uc?export=download&id=16j4m8Rz9D80f1WaqYJPiqvBHQk3epvrO"
+APK_LINK = "https://drive.google.com/uc?export=download&id=1Zy569gvAUDnCjpKLin2o--Ehq4j-8X9N"
 WHATSAPP_LINK = "https://chat.whatsapp.com/L02vNHjowvW83MLbJVqIwC?s=cl&p=a&mlu=4&ilr=4"
 FB_PAGE_LINK = "https://www.facebook.com/profile.php?id=61595278122419"
 FB_GROUP_LINK = "https://www.facebook.com/share/g/19zsQAbGu7/"
