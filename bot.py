@@ -11,9 +11,10 @@ PAGE_CHANNEL_ID = os.getenv("BUFFER_CHANNEL_IDS", "6ad4ee63778b240e2f4a7dcc").sp
 
 HISTORY_FILE = "posted_movies.json"
 
-# All Official Links & Platforms (Updated APK Link)
+# All Official Links & Platforms (Updated APK & WhatsApp Channel Links)
 APK_LINK = "https://drive.google.com/file/d/1gG3zoufzfBjStOyQOoIK92M8UMWd6nT6/view?usp=sharing"
 WHATSAPP_LINK = "https://chat.whatsapp.com/L02vNHjowvW83MLbJVqIwC?s=cl&p=a&mlu=4&ilr=4"
+WHATSAPP_CHANNEL_LINK = "https://whatsapp.com/channel/0029Vb9dDgtBPzjYQWsyKg0u"
 FB_PAGE_LINK = "https://www.facebook.com/profile.php?id=61595278122419"
 FB_GROUP_LINK = "https://www.facebook.com/share/g/19zsQAbGu7/"
 INSTAGRAM_LINK = "https://www.instagram.com/filmboxseries?exln=cTF0dnRlZXV0MXhm"
@@ -132,6 +133,8 @@ def post_to_buffer(movie, scheduled_time):
         f"🔗 {INSTAGRAM_LINK}\n\n"
         f"💬 𝗪𝗛𝗔𝗧𝗦𝗔𝗣𝗣 𝗩𝗜𝗣 𝗖𝗢𝗠𝗠𝗨𝗡𝗜𝗧𝗬:\n"
         f"🔗 {WHATSAPP_LINK}\n\n"
+        f"📢 𝗪𝗛𝗔𝗧𝗦𝗔𝗣𝗣 𝗖𝗛𝗔𝗡𝗡𝗘𝗟:\n"
+        f"🔗 {WHATSAPP_CHANNEL_LINK}\n\n"
         f"☕ 𝗦𝗨𝗣𝗣𝗢𝗥𝗧 𝗩𝗜𝗔 𝗣𝗔𝗬𝗣𝗔𝗟:\n"
         f"🔗 {PAYPAL_LINK}\n\n"
         f"📲 𝗜𝗡𝗦𝗧𝗔𝗟𝗟 𝗙𝗜𝗟𝗠 𝗕𝗢𝗫 𝗔𝗣𝗞 👇\n"
